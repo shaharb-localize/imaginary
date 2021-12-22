@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "incremental": true,
+    "esModuleInterop": true,
+    "target": "es6",
+    "lib": ["es6", "dom", "esnext"],
+    "sourceMap": true,
+    "allowJs": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "downlevelIteration": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "importHelpers": true,
+    "strictNullChecks": false,
+    "suppressImplicitAnyIndexErrors": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "outDir": "dist",
+    "rootDirs": [ "src" , "__fixtures__" ],
+    "baseUrl": "./src"
+  },
+  "include": [
+    "./src/**/*",
+    "./typings/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist",
+    "scripts",
+    "coverage",
+    "**/*.spec.ts"
+  ]
+}
