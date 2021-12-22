@@ -22,22 +22,22 @@ app.post('/upload', (req: Request, res: Response) => {
   // console.log(Array.isArray(files))
   // console.log(Object.keys(files))
 
-  for (const curFile in files) {
-    console.log(files[curFile].name)
-  }
+  // for (const curFile in files) {
+  //   console.log(files[curFile].name)
+  // }
   
-  res.send('OK')
+  // res.send('OK')
   
-  // const file: UploadedFile = req.files.f1 as UploadedFile;
+  const file: UploadedFile = req.files.f1 as UploadedFile;
 
-  // const uploadPath: string = uploadDirPath + file.name
+  const uploadPath: string = uploadDirPath + file.name
 
-  // console.log(uploadPath)
+  console.log(uploadPath)
 
-  // file.mv(uploadPath, error => {
-  //   if (error) res.status(500).send(error)
-  //   else res.send('file uploaded!')
-  // })
+  file.mv(uploadPath, error => {
+    if (error) res.status(500).send(error)
+    else res.send('file uploaded!')
+  })
 })
 
 app.listen(port, () => {
