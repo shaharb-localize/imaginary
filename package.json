@@ -12,12 +12,14 @@
     "tscheck": "tsc --project ./tsconfig.json --pretty --rootDir ./",
     "debug:serve": "LOG_LEVEL=debug nodemon --config ./nodemon.json  --inspect=127.0.0.1:9249 dist/main.js",
     "debug:watch": "concurrently --handle-input -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"green.bold\" \"pnpm run watch:ts\" \"pnpm run debug:serve\"",
-    "debug": "pnpm run build:ts:debug && pnpm run debug:watch"
+    "debug": "pnpm run build:ts:debug && pnpm run debug:watch",
+    "clear_uploads": "uploads=~/Development/training/imaginary/server/uploads && rm ${uploads}/*"
   },
   "dependencies": {
     "express": "^4.17.2",
     "express-fileupload": "^1.2.1",
     "pnpm": "^6.24.2",
+    "sharp": "^0.29.3",
     "source-map-support": "^0.5.19",
     "tslib": "2.3.0"
   },
