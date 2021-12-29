@@ -1,14 +1,12 @@
 import { Transformer } from "../transformer";
 import { Sharp } from "sharp";
 class Rotate implements Transformer {
-    isOwnCommand(command: string): boolean {
-        const pattern: RegExp = /^rotate:angle=-?\d+$/
-        return pattern.test(command)
+    createExecuter(params: { [index: string]: string }): (image: Sharp) => Sharp {
+        return (image: Sharp) => image.rotate(parseInt(params.angle))
     }
 
-    createExecuter(command: string): (image: Sharp) => Sharp {
-        const angle: number = parseInt(command.match(/-?\d+/)[0])
-        return (image: Sharp) => image.rotate(angle)
+    isParamStringValid(paramString: string): boolean {
+        return /angle=-?\d+/.test(paramString)
     }
 }
 

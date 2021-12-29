@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from "path"
 import config from '../config'
 import sharp, { Sharp } from 'sharp'
-import { isCommandValid, getExecuter, executer } from '../transformations/transformer'
+import { validateCommand, getExecuter, executer } from '../transformations/transformer'
 
 export async function view(req: Request, res: Response) {
     const filePath = path.join(config.uploadDirPath, req.params.file_name)
@@ -22,12 +22,22 @@ export async function view(req: Request, res: Response) {
     const commands: string[] = req.params.trans_list.split(';')
 
     // check commands validation
-    const invalidCommand: string | undefined = findInvalidCommand(commands)
+    // const errors: string[] =
+    //     commands.filter(curCommand => validateCommand(curCommand))
+    const errors: string[] =
+        commands.map(curCommand => validateCommand(curCommand)).filter(curError => curError != '')
 
-    if (invalidCommand) {
-        res.status(400).send(`bad command: ${invalidCommand}`)
+    if (errors.length > 0) {
+
+        res.status(400).send(errors.join(',\n'))
         return
     }
+    // const invalidCommand: string | undefined = findInvalidCommand(commands)
+
+    // if (invalidCommand) {
+    //     res.status(400).send(`unknown command: ${invalidCommand}`)
+    //     return
+    // }
 
     // execute commands
     try {
@@ -39,15 +49,25 @@ export async function view(req: Request, res: Response) {
 }
 
 async function executeCommands(commands: string[], rawImage: Sharp): Promise<Sharp> {
-    const arr: executer[] = commands.map(curCommand => getExecuter(curCommand))
-    let image: Sharp = rawImage
+    const executersList: executer[] = commands.map(curCommand => getExecuter(curCommand))
 
-    for (const curExecuter of arr)
-        image = await curExecuter(image)
-
-    return image
+    return executersList.reduce((finalResult, curExecuter) => curExecuter(finalResult), rawImage)
 }
 
 function findInvalidCommand(commands: string[]): string | undefined {
-    return commands.find(curCommand => !isCommandValid(curCommand))
+    return commands.find(curCommand => validateCommand(curCommand))
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

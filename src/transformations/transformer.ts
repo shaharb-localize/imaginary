@@ -5,25 +5,38 @@ import resizer from './transformers/resize'
 export type executer = (image: Sharp) => Sharp
 
 export interface Transformer {
-    isOwnCommand(command: string): boolean
-    createExecuter(command: string): executer
+    createExecuter(params: { [index: string]: string }): executer
+    isParamStringValid(paramString: string): boolean
 }
 
-const transformersArray: Transformer[] = [
-    rotater,
-    resizer
-]
+const transformersMap = new Map<string, Transformer>()
+transformersMap.set('rotate', rotater)
+transformersMap.set('resize', resizer)
 
-export function isCommandValid(command: string): boolean {
-    return transformersArray.some(curTrans => curTrans.isOwnCommand(command))
+export function validateCommand(commandString: string): string {
+    const [commandName, paramsString] = commandString.split(':')
+
+    if (transformersMap.has(commandName))
+        return transformersMap.get(commandName).isParamStringValid(paramsString) ?
+            '' : `params invalid in: ${commandString}`
+
+    return `unknown command: ${commandName}`
 }
 
 export function getExecuter(command: string): executer {
-    const transformer: Transformer = transformersArray.find(curTrans => curTrans.isOwnCommand(command))
+    const [name, paramsString] = command.split(':');
 
-    if (!transformer) {
-        throw `no transformer for ${command}`
-    }
+    const transformer: Transformer = transformersMap.get(name);
 
-    return transformer.createExecuter(command)
+    if (!transformer) throw `no transformer for ${command}`
+
+    return transformer.createExecuter(getParamsObject(paramsString))
+}
+
+function getParamsObject(paramsString: string): { [index: string]: string } {
+    return paramsString.split(',').reduce((params, curParam) => {
+        const [key, val] = curParam.split('=')
+        params[key] = val
+        return params
+    }, {})
 }
