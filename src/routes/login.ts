@@ -19,7 +19,7 @@ router.post('/', async (req: Request, res: Response) => {
         if (await bcrypt.compare(password, user.password)) {
             const accessToken: string =
                 jwt.sign({ name: user.name }, config.accessTokenSecret, { expiresIn: '2h' })
-            res.json({ accessToken })
+            res.status(200).json({ accessToken })
             return
         }
 
