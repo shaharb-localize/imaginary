@@ -1,12 +1,12 @@
-import User from './models/User'
+import { UserModel } from './models/User'
 import { IResolvers } from '@graphql-tools/utils'
 import bcrypt from 'bcrypt'
 
 const resolvers: IResolvers = {
     Query: {
-        getAllUsers: async () => await User.find(),
+        getAllUsers: async () => await UserModel.find(),
         getUser: async (parent, { name }, context, info) => {
-            return await User.findOne({ name: name });
+            return await UserModel.findOne({ name: name });
         }
     },
     Mutation: {
@@ -22,7 +22,7 @@ const resolvers: IResolvers = {
             const salt = await bcrypt.genSalt()
             const hashedPassword = await bcrypt.hash(password, salt)
 
-            return await User.create({ name, phone, password: hashedPassword })
+            return await UserModel.create({ name, phone, password: hashedPassword })
         }
     }
 };

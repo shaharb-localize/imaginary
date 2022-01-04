@@ -1,17 +1,19 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import config from '../config'
+import { User, UserModel } from '../models/User'
+import { ObjectId } from "bson"
 
 export interface JwtPayload {
-    exp?: number | undefined;
-    iat?: number | undefined;
-    name: string
+    exp?: number | undefined
+    iat?: number | undefined
+    userId: ObjectId
 }
 
 declare global {
     namespace Express {
         interface Request {
-            user: JwtPayload
+            user: User
         }
     }
 }
@@ -31,13 +33,13 @@ export default function authenticateToken(req: Request, res: Response, next: Nex
         return
     }
 
-    jwt.verify(token, config.accessTokenSecret, (error, user: JwtPayload) => {
+    jwt.verify(token, config.accessTokenSecret, async (error, token) => {
         if (error) {
             res.status(403).send('invalid token')
             return
         }
 
-        req.user = user
+        req.user = await UserModel.findById(token.userId)
 
         next()
     })

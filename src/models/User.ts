@@ -1,12 +1,15 @@
 import { getModelForClass, prop } from '@typegoose/typegoose'
+import { ObjectId } from "bson"
 
-class User {
+export class User {
     @prop()
-    public name?: string;
+    public _id: ObjectId;
     @prop()
-    public phone?: string;
+    public name: string;
     @prop()
-    public password?: string;
+    public phone: string;
+    @prop()
+    public password: string;
 }
 
-export default getModelForClass(User);
+export const UserModel = getModelForClass(User);

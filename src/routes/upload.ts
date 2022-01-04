@@ -2,10 +2,12 @@ import express, { Request, Response, Router } from 'express'
 import { FileArray, UploadedFile } from "express-fileupload"
 import path from "path"
 import config from '../config'
+import { ImageModel } from '../models/Image'
 
 const router: Router = express.Router()
 
 router.put('/', async (req: Request, res: Response) => {
+
     if (!req.files || Object.keys(req.files).length === 0) {
         res.status(400).send('No files were uploaded.');
         return
@@ -19,32 +21,34 @@ router.put('/', async (req: Request, res: Response) => {
         return
     }
 
-    const promises: Promise<boolean>[] = uploadFiles.map(curFile => uploadFile(curFile))
-    const values: boolean[] = await Promise.all(promises)
+    const values: boolean[] =
+        await Promise.all(uploadFiles.map(curFile => uploadFile(curFile)))
 
     if (values.some(curVal => !curVal)) {
         res.send('not all files were uploaded')
     } else {
+        await Promise.all(uploadFiles.map(curFile =>
+            ImageModel.create({ name: curFile.name, owner: req.user._id })
+        ))
+
         res.send('all files were uploaded')
     }
 })
 
 function extractAllFiles(files: FileArray): UploadedFile[] {
     const uploadFiles: UploadedFile[] = []
+
     Object.values(files).forEach(curEntry => {
         if (isUploadedFile(curEntry)) uploadFiles.push(curEntry)
         else uploadFiles.push(...curEntry)
     });
-    return uploadFiles
-}
 
-function isValidFile(file: UploadedFile): boolean {
-    return config.extname_pattern.test(path.extname(file.name))
+    return uploadFiles
 }
 
 async function uploadFile(file: UploadedFile): Promise<boolean> {
     const uploadPath: string = path.join(config.uploadDirPath, file.name)
-    console.log(uploadPath)
+
     try {
         await file.mv(uploadPath);
         return true
@@ -52,6 +56,10 @@ async function uploadFile(file: UploadedFile): Promise<boolean> {
     catch (error) {
         return false;
     }
+}
+
+function isValidFile(file: UploadedFile): boolean {
+    return config.extname_pattern.test(path.extname(file.name))
 }
 
 function isUploadedFile(entry: UploadedFile | UploadedFile[]): entry is UploadedFile {

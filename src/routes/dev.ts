@@ -1,5 +1,5 @@
 import express, { Request, Response, Router } from 'express'
-import User from '../models/User'
+import { UserModel } from '../models/User'
 import config from '../config'
 import fs from 'fs';
 
@@ -7,7 +7,7 @@ const router: Router = express.Router()
 
 router
     .delete('/deleteAllUsers', async (req: Request, res: Response) => {
-        await User.deleteMany()
+        await UserModel.deleteMany()
         res.send('deleted')
     })
     .get('/ls', async (req: Request, res: Response) => {

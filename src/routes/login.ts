@@ -1,5 +1,5 @@
 import express, { Request, Response, Router } from 'express'
-import User from '../models/User'
+import { UserModel, User } from '../models/User'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import config from '../config'
@@ -8,7 +8,7 @@ const router: Router = express.Router()
 
 router.post('/', async (req: Request, res: Response) => {
     const { name, password } = req.body
-    const user = await User.findOne({ name: name })
+    const user: User = await UserModel.findOne({ name: name })
 
     if (!user) {
         res.status(400).send('unknown user')
@@ -18,7 +18,7 @@ router.post('/', async (req: Request, res: Response) => {
     try {
         if (await bcrypt.compare(password, user.password)) {
             const accessToken: string =
-                jwt.sign({ name: user.name }, config.accessTokenSecret, { expiresIn: '2h' })
+                jwt.sign({ userId: user._id }, config.accessTokenSecret, { expiresIn: '2h' })
             res.status(200).json({ accessToken })
             return
         }
