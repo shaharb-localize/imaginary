@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import fs from 'fs'
 import path from "path"
-import config from '../config'
+import config from '../config/config'
 import sharp, { Sharp } from 'sharp'
 import { validateCommand, getExecuter, executer } from '../transformations/transformer'
 import { Image, ImageModel } from '../models/Image'
@@ -12,12 +12,11 @@ export function view() {
     setInterval(() => viewRequests.clear(), interval * 1000)
 
     return async (req: Request, res: Response) => {
-        const fileName = req.params.file_name
-        const { url } = req
+        const fileName: string = req.params.file_name
+        const url: string = req.url
 
         if (viewRequests.has(url)) {
             await pipeImageAndUpdateAccessEntries(fileName, viewRequests.get(url), res)
-            // viewRequests.get(url).pipe(res)
             return
         }
 
@@ -68,8 +67,6 @@ async function respondToUncachedRequest(req: Request, res: Response,
     try {
         const finalImage: Sharp = executeCommands(commands, sharp(filePath))
         viewRequests.set(req.url, finalImage)
-        finalImage.pipe(res)
-
         await pipeImageAndUpdateAccessEntries(fileName, finalImage, res)
     } catch (error) {
         res.status(500).send(error)

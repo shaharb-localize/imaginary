@@ -2,7 +2,7 @@ import express, { Request, Response, Router } from 'express'
 import { UserModel, User } from '../models/User'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import config from '../config'
+import config from '../config/config'
 
 const router: Router = express.Router()
 

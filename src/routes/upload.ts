@@ -1,7 +1,7 @@
 import express, { Request, Response, Router } from 'express'
 import { FileArray, UploadedFile } from "express-fileupload"
 import path from "path"
-import config from '../config'
+import config from '../config/config'
 import { ImageModel } from '../models/Image'
 
 const router: Router = express.Router()

@@ -1,7 +1,7 @@
 import express, { Request, Response, Router } from 'express'
 import { UserModel } from '../models/User'
 import { ImageModel } from '../models/Image'
-import config from '../config'
+import config from '../config/config'
 import fs from 'fs';
 
 const router: Router = express.Router()

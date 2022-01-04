@@ -1,4 +1,4 @@
-import config from './config'
+import config from './config/config'
 import express, { Request, Response, Express } from 'express'
 import fileUpload from "express-fileupload"
 import pingRouter from './routes/ping'
@@ -6,11 +6,16 @@ import uploadRouter from './routes/upload'
 import viewRouter from './routes/view'
 import loginRouter from './routes/login'
 import devRouter from './routes/dev'
-import mongoose from 'mongoose'
+import mongoose, { ObjectId } from 'mongoose'
 import { ApolloServer } from 'apollo-server-express'
-import resolvers from './resolvers'
-import typeDefs from './typeDefs'
-import auth from "./middlewares/authenticateToken"
+import resolvers from './graphql/resolvers'
+import typeDefs from './graphql/typeDefs'
+import auth from "./middlewares/authToken"
+import { extractUserId } from 'controller/authToken'
+
+interface ApolloContext {
+  userId: ObjectId | undefined
+}
 
 async function main() {
   try {
@@ -36,7 +41,10 @@ async function main() {
   app.use('/upload', auth, uploadRouter)
   app.use('/view', auth, viewRouter)
 
-  const server: ApolloServer = new ApolloServer({ typeDefs, resolvers })
+  const server: ApolloServer = new ApolloServer({
+    typeDefs, resolvers, context: ({ req }) => ({ userId: extractUserId(req) })
+  })
+
   await server.start()
   server.applyMiddleware({ app })
 
