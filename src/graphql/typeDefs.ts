@@ -39,9 +39,9 @@ const typeDefs: DocumentNode = gql`
     type Mutation {
         login(name: String!, password: String!): String
         register(user: UserInput!): User
+        deleteImage(name: String!): String
     }
 `;
-// deleteImage(name: String!): String
 
 export const dateScalar = new GraphQLScalarType({
   name: 'Date',

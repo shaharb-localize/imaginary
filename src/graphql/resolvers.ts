@@ -1,12 +1,12 @@
 import { UserModel } from '../models/User'
+import { ImageModel, Image } from 'models/Image';
 import { IResolvers } from '@graphql-tools/utils'
 import bcrypt from 'bcrypt'
-import { ImageModel } from 'models/Image';
 import { dateScalar } from './typeDefs'
 import { ApolloError } from 'apollo-server-express'
-// import fs from 'fs'
-// import path from 'path'
-// import config from '../config/config';
+import fs from 'fs'
+import path from 'path'
+import config from '../config/config';
 
 const resolvers: IResolvers = {
     Date: dateScalar,
@@ -52,30 +52,23 @@ const resolvers: IResolvers = {
 
             return await UserModel.create({ name, phone, password: hashedPassword })
         }
-        // ,
-        // deleteImage: async (parent, args, { userId }, info) => {
-        //     if (!userId) {
-        //         console.log('AAA')
-        //         return 'unauthorized'
-        //     }
+        ,
+        deleteImage: async (parent, args, { userId }, info) => {
+            if (!userId) return 'unauthorized'
 
-        //     const imageName: string = args.name
-        //     const image: Image = await ImageModel.findOne({ name: imageName })
+            const imageName: string = args.name
+            const image: Image = await ImageModel.findOne({ name: imageName })
+            if (image.owner._id.toString() !== userId) return 'unauthorized'
 
-        //     if (image.owner !== userId) {
-        //         console.log('BBB')
-        //         return 'unauthorized'
-        //     }
-
-        //     try {
-        //         const imageFileFullPath: string = path.join(config.uploadDirPath, imageName)
-        //         await fs.promises.unlink(imageFileFullPath)
-        //         await ImageModel.deleteOne({ name: imageName })
-        //         return `image ${imageName} was deleted`
-        //     } catch (error) {
-        //         return error.msg
-        //     }
-        // }
+            try {
+                const imageFileFullPath: string = path.join(config.uploadDirPath, imageName)
+                await fs.promises.unlink(imageFileFullPath)
+                await ImageModel.deleteOne({ name: imageName })
+                return `image ${imageName} was deleted`
+            } catch (error) {
+                return error.msg
+            }
+        }
     }
 }
 

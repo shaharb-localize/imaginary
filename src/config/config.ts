@@ -21,7 +21,7 @@ const { DB_USER: dbUser,
 
 const str: string = config.allowedFormats.map(curExt => `\\.${curExt}`).join('|')
 const extname_pattern: RegExp = new RegExp(`^(${str})$`)
-const uploadDirPath: string = path.join(__dirname, '..', process.env.UPLOAD_DIR_NAME)
+const uploadDirPath: string = path.join(__dirname, '..', '..', process.env.UPLOAD_DIR_NAME)
 const dbUrl: string =
     `mongodb://${dbUser}:${dbPassword}@${dbHost}:${dbPort}/imaginary?authSource=admin`
 
