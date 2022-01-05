@@ -4,6 +4,10 @@ import { gql } from 'apollo-server-express'
 const typeDefs: DocumentNode = gql`
     scalar Date
 
+    type ShaharError {
+      msg: String!
+    }
+
     type User {
       id: String!
       name: String!
@@ -17,17 +21,19 @@ const typeDefs: DocumentNode = gql`
       accessEntries: [Date!]!
     }
 
-    type Query {
-      getAllUsers: [User!]!
-      getUser(name: String!): User
-      getAllImages: [Image!]!
-      test: String!
-    }
+    union StamUnion = Image | ShaharError
 
     input UserInput {
       name: String!
       phone: String!
       password: String!
+    }
+    
+    type Query {
+      getAllUsers: [User!]!
+      getUser(name: String!): User
+      getAllImages: [Image!]!
+      test: String
     }
 
     type Mutation {
@@ -35,6 +41,7 @@ const typeDefs: DocumentNode = gql`
         register(user: UserInput!): User
     }
 `;
+// deleteImage(name: String!): String
 
 export const dateScalar = new GraphQLScalarType({
   name: 'Date',
