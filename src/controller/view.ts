@@ -5,6 +5,7 @@ import config from '../config/config'
 import sharp, { Sharp } from 'sharp'
 import { validateCommand, getExecuter, executer } from '../transformations/transformer'
 import { Image, ImageModel } from '../models/Image'
+import { DocumentType } from '@typegoose/typegoose'
 
 export function view() {
     const interval: number = parseInt(process.env.CACHE_INTERVAL)
@@ -30,7 +31,7 @@ async function pipeImageAndUpdateAccessEntries(fileName: string, imageFile: Shar
 }
 
 async function updateImageAccessEntries(fileName: string, imageFile: Sharp) {
-    const image: Image = await ImageModel.findOne({ name: fileName })
+    const image: DocumentType<Image> = await ImageModel.findOne({ name: fileName })
     image.accessEntries.push(new Date())
     const updated = await ImageModel.findByIdAndUpdate(image._id, image)
 }

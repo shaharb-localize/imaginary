@@ -8,6 +8,7 @@ import fs from 'fs'
 import path from 'path'
 import config from '../config/config';
 import jwt from 'jsonwebtoken'
+import { DocumentType } from '@typegoose/typegoose'
 
 const resolvers: IResolvers = {
     Date: dateScalar,
@@ -39,7 +40,7 @@ const resolvers: IResolvers = {
     Mutation: {
         login: async (parent, { name, password }) => {
             try {
-                const user: User = await UserModel.findOne({ name })
+                const user: DocumentType<User> = await UserModel.findOne({ name })
 
                 if (!user) return 'unknown user'
 
@@ -55,17 +56,12 @@ const resolvers: IResolvers = {
             }
         },
         register: async (parent, args, context, info) => {
-            // console.log(args.user)
             const { name, phone, password } = args.user
 
-            // if (!(name && phone && password))
-            //     throw new Error("all inputs required")
+            if (!(name && phone && password)) throw new Error("all inputs required")
 
             const salt = await bcrypt.genSalt()
             const hashedPassword = await bcrypt.hash(password, salt)
-
-
-            console.log('hi');
 
             try {
                 const user: User = await UserModel.create({ name, phone, password: hashedPassword })
@@ -75,7 +71,6 @@ const resolvers: IResolvers = {
                 console.error(error);
                 throw error
             }
-            // return await UserModel.create({ name, phone, password: hashedPassword })
         },
         deleteImage: async (parent, args, { userId }, info) => {
             if (!userId) return 'unauthorized'

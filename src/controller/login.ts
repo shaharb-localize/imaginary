@@ -3,10 +3,11 @@ import { UserModel, User } from '../models/User'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import config from '../config/config'
+import { DocumentType } from '@typegoose/typegoose'
 
 export async function processLoginRequest(req: Request, res: Response) {
     const { name, password } = req.body
-    const user: User = await UserModel.findOne({ name: name })
+    const user: DocumentType<User> = await UserModel.findOne({ name: name })
 
     if (!user) {
         res.status(400).send('unknown user')
