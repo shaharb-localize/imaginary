@@ -11,11 +11,7 @@ import { ApolloServer } from 'apollo-server-express'
 import resolvers from './graphql/resolvers'
 import typeDefs from './graphql/typeDefs'
 import auth from "./middlewares/authToken"
-import { extractUserId } from 'controller/authToken'
-
-interface ApolloContext {
-  userId: ObjectId | undefined
-}
+import expressJwt from 'express-jwt'
 
 async function main() {
   try {
@@ -30,6 +26,12 @@ async function main() {
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
   app.use(fileUpload())
+  app.use(expressJwt({
+    secret: config.accessTokenSecret,
+    algorithms: ["HS256"],
+    credentialsRequired: false
+    // requestProperty: 'userId'
+  }))
 
   app.get('/', (req: Request, res: Response) => {
     res.send('hi')
@@ -42,7 +44,11 @@ async function main() {
   app.use('/view', auth, viewRouter)
 
   const server: ApolloServer = new ApolloServer({
-    typeDefs, resolvers, context: ({ req }) => ({ userId: extractUserId(req) })
+    typeDefs, resolvers, context: ({ req }) => {
+      const userId: ObjectId | undefined = req.user ? req.user.userId : undefined
+      // const userId: ObjectId | undefined = req.user || undefined
+      return { userId }
+    }
   })
 
   await server.start()

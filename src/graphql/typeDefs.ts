@@ -22,6 +22,7 @@ const typeDefs: DocumentNode = gql`
     }
 
     union StamUnion = Image | ShaharError
+    union UserOrError = User | ShaharError
 
     input UserInput {
       name: String!
@@ -31,8 +32,8 @@ const typeDefs: DocumentNode = gql`
     
     type Query {
       getAllUsers: [User!]!
-      getUser(name: String!): User
-      getAllImages: [Image!]!
+      getUser(name: String!): UserOrError
+      getAllImages: [StamUnion!]!
       test: String
     }
 
@@ -42,6 +43,7 @@ const typeDefs: DocumentNode = gql`
         deleteImage(name: String!): String
     }
 `;
+// register(name: string!, phone: string!, password: string!): User
 
 export const dateScalar = new GraphQLScalarType({
   name: 'Date',

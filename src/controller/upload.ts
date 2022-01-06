@@ -25,7 +25,7 @@ export async function processUploadingRequest(req: Request, res: Response) {
         res.send('not all files were uploaded')
     } else {
         await Promise.all(uploadFiles.map(curFile =>
-            ImageModel.create({ name: curFile.name, owner: req.user._id })
+            ImageModel.create({ name: curFile.name, owner: req.user.userId })
         ))
 
         res.send('all files were uploaded')

@@ -3,7 +3,6 @@ import { ObjectId } from "mongoose"
 import { User } from '../models/User'
 
 export class Image {
-    @prop({ auto: true })
     public _id: ObjectId;
 
     @prop()
