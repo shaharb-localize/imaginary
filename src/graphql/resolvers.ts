@@ -62,8 +62,14 @@ const resolvers: IResolvers = {
     },
     Query: {
         getAllUsers: async () => await UserModel.find(),
-        getUser: async (parent, { name }) => {
-            return await UserModel.findOne({ name: name });
+        getUser: async (_parent, { name }) => {
+            try {
+                const userResult: DocumentType<User> = await UserModel.findOne({ name })
+                return userResult ? userResult : new ShaharError('unknown user')
+            } catch (error) {
+                console.error(error)
+                return new ShaharError('server error')
+            }
         },
         getAllImages: async (_parent, _args, { userId }) => {
             try {
