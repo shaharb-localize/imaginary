@@ -30,7 +30,12 @@ const typeDefs: DocumentNode = gql`
       details: String
     }
 
-    union ImageResult = Image | ShaharError
+    type ImagesSelectionResult {
+      didSucceed: Boolean!
+      images: [Image!]
+      error: String
+    }
+
     union UserResult = User | ShaharError
 
     input UserInput {
@@ -41,8 +46,8 @@ const typeDefs: DocumentNode = gql`
     
     type Query {
       getAllUsers: [User!]!
-      getUser(name: String!): UserResult
-      getAllImages: [ImageResult!]!
+      getUser(name: String!): UserResult!
+      getAllImages: ImagesSelectionResult!
       test: String
     }
 

@@ -6,22 +6,14 @@ import config from '../config/config';
 import { UserModel, User } from '../models/User'
 import { ImageModel, Image } from '../models/Image';
 import { IResolvers } from '@graphql-tools/utils'
-import { ApolloError } from 'apollo-server-express'
 import { DocumentType } from '@typegoose/typegoose'
-import { ShaharError, LoginResult, ImageDeletionResult, dateScalar } from './results'
+import { ShaharError, LoginResult, ImageDeletionResult, dateScalar, ImagesSelectionResult } from './results'
 
 const resolvers: IResolvers = {
     Date: dateScalar,
     UserResult: {
         __resolveType(obj: any) {
             if (obj.phone) return 'User'
-            else if (obj.msg) return 'ShaharError'
-            return null // GraphQLError is thrown
-        },
-    },
-    ImageResult: {
-        __resolveType(obj: any) {
-            if (obj.name) return 'Image'
             else if (obj.msg) return 'ShaharError'
             return null // GraphQLError is thrown
         },
@@ -38,12 +30,13 @@ const resolvers: IResolvers = {
             }
         },
         getAllImages: async (_parent, _args, { userId }) => {
-            try {
-                if (!userId) return [{ msg: 'unauthorized' }]
+            if (!userId) return ImagesSelectionResult.createFailedResult('unauthorized')
 
-                return await ImageModel.find().populate('owner')
+            try {
+                return ImagesSelectionResult.createSuccessfulResult(await ImageModel.find().populate('owner'))
             } catch (error) {
-                throw new ApolloError(error)
+                console.error(error)
+                return ImagesSelectionResult.createFailedResult(error.msg)
             }
         },
         test: async () => {
@@ -57,8 +50,7 @@ const resolvers: IResolvers = {
 
                 if (!user) return new LoginResult(false, "unknown user")
 
-                const compareResult: boolean = await bcrypt.compare(password, user.password)
-                if (compareResult) {
+                if (await bcrypt.compare(password, user.password)) {
                     const token: string = jwt.sign({ userId: user._id },
                         config.accessTokenSecret,
                         { expiresIn: '2h', algorithm: "HS256" })
