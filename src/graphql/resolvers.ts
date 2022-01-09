@@ -108,18 +108,17 @@ const resolvers: IResolvers = {
         register: async (_parent, args) => {
             const { name, phone, password } = args.user
 
-            if (!(name && phone && password)) throw new Error("all inputs required")
+            if (await UserModel.findOne({ name })) return new ShaharError('user name already exist')
+            if (await UserModel.findOne({ phone })) return new ShaharError('user phone already exist')
 
             const salt = await bcrypt.genSalt()
             const hashedPassword = await bcrypt.hash(password, salt)
 
             try {
-                const user: User = await UserModel.create({ name, phone, password: hashedPassword })
-                console.log('created user', user)
-                return user
+                return await UserModel.create({ name, phone, password: hashedPassword })
             } catch (error) {
                 console.error(error);
-                throw error
+                return new ShaharError('server error')
             }
         },
         deleteImage: async (_parent, args, { userId }) => {
@@ -142,6 +141,14 @@ const resolvers: IResolvers = {
             }
         }
     }
+}
+
+async function isUserNameExist(name: string): Promise<boolean> {
+    return !!(await UserModel.findOne({ name }))
+}
+
+async function isUserPhoneExist(phone: string): Promise<boolean> {
+    return !!(await UserModel.findOne({ phone }))
 }
 
 export default resolvers

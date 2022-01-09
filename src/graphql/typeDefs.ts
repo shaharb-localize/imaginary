@@ -9,10 +9,8 @@ const typeDefs: DocumentNode = gql`
     }
 
     type User {
-      id: String!
       name: String!
       phone: String!
-      password: String!
     }
 
     type Image {
