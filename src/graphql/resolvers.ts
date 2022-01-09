@@ -8,41 +8,7 @@ import { ImageModel, Image } from '../models/Image';
 import { IResolvers } from '@graphql-tools/utils'
 import { ApolloError } from 'apollo-server-express'
 import { DocumentType } from '@typegoose/typegoose'
-import { GraphQLScalarType, Kind } from 'graphql'
-
-class LoginResult {
-    public didLogin: boolean
-    public token: string
-    public details: string
-
-    constructor(didLogin: boolean, details: string, token: string = '') {
-        this.didLogin = didLogin
-        this.details = details
-        this.token = token
-    }
-}
-
-class ShaharError {
-    public msg: string
-
-    constructor(msg: string) {
-        this.msg = msg
-    }
-}
-
-const dateScalar = new GraphQLScalarType({
-    name: 'Date',
-    description: 'Date custom scalar type',
-    serialize(value) {
-        return value.getTime()
-    },
-    parseValue(value) {
-        return new Date(value)
-    },
-    parseLiteral(ast) {
-        return ast.kind === Kind.INT ? new Date(parseInt(ast.value, 10)) : null
-    }
-})
+import { ShaharError, LoginResult, ImageDeletionResult, dateScalar } from './results'
 
 const resolvers: IResolvers = {
     Date: dateScalar,
@@ -108,11 +74,13 @@ const resolvers: IResolvers = {
         register: async (_parent, args) => {
             const { name, phone, password } = args.user
 
-            if (await UserModel.findOne({ name })) return new ShaharError('user name already exist')
-            if (await UserModel.findOne({ phone })) return new ShaharError('user phone already exist')
+            if (await UserModel.findOne({ name }))
+                return new ShaharError('user name already exist')
 
-            const salt = await bcrypt.genSalt()
-            const hashedPassword = await bcrypt.hash(password, salt)
+            if (await UserModel.findOne({ phone }))
+                return new ShaharError('user phone already exist')
+
+            const hashedPassword = await bcrypt.hash(password, await bcrypt.genSalt())
 
             try {
                 return await UserModel.create({ name, phone, password: hashedPassword })
@@ -122,33 +90,34 @@ const resolvers: IResolvers = {
             }
         },
         deleteImage: async (_parent, args, { userId }) => {
-            if (!userId) return 'unauthorized'
+            // if (!userId) return 'unauthorized'
+            if (!userId) return new ImageDeletionResult(false, 'unauthorized')
 
             const imageName: string = args.name
             const image: Image = await ImageModel.findOne({ name: imageName })
 
-            if (!image) return 'unknown image'
+            // if (!image) return 'unknown image'
 
-            if (image.owner._id.toString() !== userId) return 'unauthorized'
+            if (!image)
+                return new ImageDeletionResult(false, 'unknown image')
+
+            if (image.owner._id.toString() !== userId)
+                return new ImageDeletionResult(false, 'unauthorized')
+
+            // if (image.owner._id.toString() !== userId) return 'unauthorized'
 
             try {
                 const imageFileFullPath: string = path.join(config.uploadDirPath, imageName)
                 await fs.promises.unlink(imageFileFullPath)
                 await ImageModel.deleteOne({ name: imageName })
-                return `image ${imageName} was deleted`
+                // return `image ${imageName} was deleted`
+                return new ImageDeletionResult(true)
             } catch (error) {
-                return error.msg
+                console.error(error)
+                return new ImageDeletionResult(false, error.msg)
             }
         }
     }
-}
-
-async function isUserNameExist(name: string): Promise<boolean> {
-    return !!(await UserModel.findOne({ name }))
-}
-
-async function isUserPhoneExist(phone: string): Promise<boolean> {
-    return !!(await UserModel.findOne({ phone }))
 }
 
 export default resolvers

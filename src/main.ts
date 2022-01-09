@@ -30,7 +30,6 @@ async function main() {
     secret: config.accessTokenSecret,
     algorithms: ["HS256"],
     credentialsRequired: false
-    // requestProperty: 'userId'
   }))
 
   app.get('/', (req: Request, res: Response) => {
@@ -46,7 +45,6 @@ async function main() {
   const server: ApolloServer = new ApolloServer({
     typeDefs, resolvers, context: ({ req }) => {
       const userId: ObjectId | undefined = req.user ? req.user.userId : undefined
-      // const userId: ObjectId | undefined = req.user || undefined
       return { userId }
     }
   })

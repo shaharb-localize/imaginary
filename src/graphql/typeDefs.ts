@@ -4,6 +4,11 @@ import { gql } from 'apollo-server-express'
 const typeDefs: DocumentNode = gql`
     scalar Date
 
+    type ImageDeletionResult {
+      wasDeleted: Boolean!
+      errorDetails: String
+    }
+
     type ShaharError {
       msg: String!
     }
@@ -44,7 +49,7 @@ const typeDefs: DocumentNode = gql`
     type Mutation {
         login(name: String!, password: String!): LoginResult
         register(user: UserInput!): UserResult
-        deleteImage(name: String!): String
+        deleteImage(name: String!): ImageDeletionResult
     }
 `;
 
