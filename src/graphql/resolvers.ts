@@ -90,27 +90,20 @@ const resolvers: IResolvers = {
             }
         },
         deleteImage: async (_parent, args, { userId }) => {
-            // if (!userId) return 'unauthorized'
             if (!userId) return new ImageDeletionResult(false, 'unauthorized')
 
             const imageName: string = args.name
             const image: Image = await ImageModel.findOne({ name: imageName })
-
-            // if (!image) return 'unknown image'
 
             if (!image)
                 return new ImageDeletionResult(false, 'unknown image')
 
             if (image.owner._id.toString() !== userId)
                 return new ImageDeletionResult(false, 'unauthorized')
-
-            // if (image.owner._id.toString() !== userId) return 'unauthorized'
-
             try {
                 const imageFileFullPath: string = path.join(config.uploadDirPath, imageName)
                 await fs.promises.unlink(imageFileFullPath)
                 await ImageModel.deleteOne({ name: imageName })
-                // return `image ${imageName} was deleted`
                 return new ImageDeletionResult(true)
             } catch (error) {
                 console.error(error)
