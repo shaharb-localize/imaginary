@@ -1,4 +1,4 @@
-import { DocumentNode, GraphQLScalarType, Kind } from 'graphql'
+import { DocumentNode } from 'graphql'
 import { gql } from 'apollo-server-express'
 
 const typeDefs: DocumentNode = gql`
@@ -21,8 +21,14 @@ const typeDefs: DocumentNode = gql`
       accessEntries: [Date!]!
     }
 
-    union StamUnion = Image | ShaharError
-    union UserOrError = User | ShaharError
+    type LoginResult {
+      didLogin: Boolean!
+      token: String
+      details: String
+    }
+
+    union ImageResult = Image | ShaharError
+    union UserResult = User | ShaharError
 
     input UserInput {
       name: String!
@@ -32,31 +38,16 @@ const typeDefs: DocumentNode = gql`
     
     type Query {
       getAllUsers: [User!]!
-      getUser(name: String!): UserOrError
-      getAllImages: [StamUnion!]!
+      getUser(name: String!): UserResult
+      getAllImages: [ImageResult!]!
       test: String
     }
 
     type Mutation {
-        login(name: String!, password: String!): String
-        register(user: UserInput!): User
+        login(name: String!, password: String!): LoginResult
+        register(user: UserInput!): UserResult
         deleteImage(name: String!): String
     }
 `;
-// register(name: string!, phone: string!, password: string!): User
-
-export const dateScalar = new GraphQLScalarType({
-  name: 'Date',
-  description: 'Date custom scalar type',
-  serialize(value) {
-    return value.getTime()
-  },
-  parseValue(value) {
-    return new Date(value)
-  },
-  parseLiteral(ast) {
-    return ast.kind === Kind.INT ? new Date(parseInt(ast.value, 10)) : null
-  }
-})
 
 export default typeDefs

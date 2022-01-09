@@ -3,13 +3,13 @@ import { User } from '../models/User'
 import { DocumentType } from '@typegoose/typegoose'
 
 export class Image {
-    @prop()
+    @prop({ unique: true, required: true })
     public name: string
 
-    @prop({ ref: () => User })
+    @prop({ required: true, ref: () => User })
     public owner: Ref<DocumentType<User>>
 
-    @prop()
+    @prop({ default: [] })
     public accessEntries: Date[]
 }
 

@@ -1,18 +1,59 @@
-import { UserModel, User } from '../models/User'
-import { ImageModel, Image } from 'models/Image';
-import { IResolvers } from '@graphql-tools/utils'
 import bcrypt from 'bcrypt'
-import { dateScalar } from './typeDefs'
-import { ApolloError } from 'apollo-server-express'
 import fs from 'fs'
 import path from 'path'
-import config from '../config/config';
 import jwt from 'jsonwebtoken'
+import config from '../config/config';
+import { UserModel, User } from '../models/User'
+import { ImageModel, Image } from '../models/Image';
+import { IResolvers } from '@graphql-tools/utils'
+import { ApolloError } from 'apollo-server-express'
 import { DocumentType } from '@typegoose/typegoose'
+import { GraphQLScalarType, Kind } from 'graphql'
+
+class LoginResult {
+    public didLogin: boolean
+    public token: string
+    public details: string
+
+    constructor(didLogin: boolean, details: string, token: string = '') {
+        this.didLogin = didLogin
+        this.details = details
+        this.token = token
+    }
+}
+
+class ShaharError {
+    public msg: string
+
+    constructor(msg: string) {
+        this.msg = msg
+    }
+}
+
+const dateScalar = new GraphQLScalarType({
+    name: 'Date',
+    description: 'Date custom scalar type',
+    serialize(value) {
+        return value.getTime()
+    },
+    parseValue(value) {
+        return new Date(value)
+    },
+    parseLiteral(ast) {
+        return ast.kind === Kind.INT ? new Date(parseInt(ast.value, 10)) : null
+    }
+})
 
 const resolvers: IResolvers = {
     Date: dateScalar,
-    StamUnion: {
+    UserResult: {
+        __resolveType(obj: any) {
+            if (obj.phone) return 'User'
+            else if (obj.msg) return 'ShaharError'
+            return null // GraphQLError is thrown
+        },
+    },
+    ImageResult: {
         __resolveType(obj: any) {
             if (obj.name) return 'Image'
             else if (obj.msg) return 'ShaharError'
@@ -24,7 +65,7 @@ const resolvers: IResolvers = {
         getUser: async (parent, { name }) => {
             return await UserModel.findOne({ name: name });
         },
-        getAllImages: async (parent, args, { userId }) => {
+        getAllImages: async (_parent, _args, { userId }) => {
             try {
                 if (!userId) return [{ msg: 'unauthorized' }]
 
@@ -38,24 +79,27 @@ const resolvers: IResolvers = {
         }
     },
     Mutation: {
-        login: async (parent, { name, password }) => {
+        login: async (_parent, { name, password }) => {
             try {
                 const user: DocumentType<User> = await UserModel.findOne({ name })
 
-                if (!user) return 'unknown user'
+                if (!user) return new LoginResult(false, "unknown user")
 
-                return await bcrypt.compare(password, user.password) ?
-                    jwt.sign({ userId: user._id },
+                const compareResult: boolean = await bcrypt.compare(password, user.password)
+                if (compareResult) {
+                    const token: string = jwt.sign({ userId: user._id },
                         config.accessTokenSecret,
-                        { expiresIn: '2h', algorithm: "HS256" }) :
-                    'wrong password'
+                        { expiresIn: '2h', algorithm: "HS256" })
 
+                    return new LoginResult(true, '', token)
+                }
+                else return new LoginResult(false, 'wrong password')
             } catch (error) {
                 console.error(error)
-                return 'server error'
+                return new LoginResult(false, 'server error')
             }
         },
-        register: async (parent, args, context, info) => {
+        register: async (_parent, args) => {
             const { name, phone, password } = args.user
 
             if (!(name && phone && password)) throw new Error("all inputs required")
@@ -72,7 +116,7 @@ const resolvers: IResolvers = {
                 throw error
             }
         },
-        deleteImage: async (parent, args, { userId }, info) => {
+        deleteImage: async (_parent, args, { userId }) => {
             if (!userId) return 'unauthorized'
 
             const imageName: string = args.name
