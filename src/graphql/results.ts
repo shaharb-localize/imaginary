@@ -1,4 +1,3 @@
-import { GraphQLScalarType, Kind } from 'graphql'
 import { Image } from '../models/Image';
 import { DocumentType } from '@typegoose/typegoose'
 
@@ -51,17 +50,3 @@ export class ShaharError {
         this.msg = msg
     }
 }
-
-export const dateScalar = new GraphQLScalarType({
-    name: 'Date',
-    description: 'Date custom scalar type',
-    serialize(value) {
-        return value.getTime()
-    },
-    parseValue(value) {
-        return new Date(value)
-    },
-    parseLiteral(ast) {
-        return ast.kind === Kind.INT ? new Date(parseInt(ast.value, 10)) : null
-    }
-})

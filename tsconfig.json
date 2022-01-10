@@ -4,7 +4,11 @@
     "incremental": true,
     "esModuleInterop": true,
     "target": "es6",
-    "lib": ["es6", "dom", "esnext"],
+    "lib": [
+      "es6",
+      "dom",
+      "esnext"
+    ],
     "sourceMap": true,
     "allowJs": true,
     "moduleResolution": "node",
@@ -21,7 +25,10 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "outDir": "dist",
-    "rootDirs": [ "src" , "__fixtures__" ],
+    "rootDirs": [
+      "src",
+      "__fixtures__"
+    ],
     "baseUrl": "./src"
   },
   "include": [
@@ -34,6 +41,7 @@
     "dist",
     "scripts",
     "coverage",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "**/*.test.ts",
   ]
 }
