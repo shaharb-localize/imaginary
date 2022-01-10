@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { FileArray, UploadedFile } from "express-fileupload"
 import path from "path"
 import config from '../config/config'
-import { ImageModel } from '../models/Image'
+import * as db from '../db/db'
 
 export async function processUploadingRequest(req: Request, res: Response) {
     if (!req.files || Object.keys(req.files).length === 0) {
@@ -25,7 +25,7 @@ export async function processUploadingRequest(req: Request, res: Response) {
         res.send('not all files were uploaded')
     } else {
         await Promise.all(uploadFiles.map(curFile =>
-            ImageModel.create({ name: curFile.name, owner: req.user.userId })
+            db.createImage(curFile.name, req.user.userId)
         ))
 
         res.send('all files were uploaded')

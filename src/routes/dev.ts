@@ -1,20 +1,19 @@
 import express, { Request, Response, Router } from 'express'
-import { UserModel } from '../models/User'
-import { ImageModel } from '../models/Image'
 import config from '../config/config'
 import fs from 'fs';
 import path from 'path';
+import * as db from '../db/db'
 
 const router: Router = express.Router()
 
 router
     .delete('/deleteAllUsers', async (req: Request, res: Response) => {
-        await UserModel.deleteMany()
+        await db.deleteAllUsers()
         res.send('all users were deleted')
     })
     .delete('/deleteAllImages', async (req: Request, res: Response) => {
         clearDir(config.uploadDirPath)
-        await ImageModel.deleteMany()
+        await db.deleteAllImages()
         res.send('all images were deleted')
     })
     .get('/ls', async (req: Request, res: Response) => {
