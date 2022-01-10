@@ -1,16 +1,16 @@
-import { UserModel, User } from '../models/User'
 import bcrypt from 'bcrypt'
 import fs from 'fs'
 import path from 'path'
 import jwt from 'jsonwebtoken'
 import config from '../config/config';
-import { ImageModel, Image } from '../models/Image';
 import { DocumentType } from '@typegoose/typegoose'
+import { User } from '../models/User'
 import { ShaharError, LoginResult, ImageDeletionResult } from './results'
+import * as db from '../db/db'
 
 export async function login(name: string, password: string): Promise<LoginResult> {
     try {
-        const user: DocumentType<User> = await UserModel.findOne({ name })
+        const user = await db.getUserByName(name)
 
         if (!user) return new LoginResult(false, "unknown user")
 
@@ -29,16 +29,16 @@ export async function login(name: string, password: string): Promise<LoginResult
 }
 
 export async function register(name: string, phone: string, password: string): Promise<ShaharError | DocumentType<User>> {
-    if (await UserModel.findOne({ name }))
+    if (await db.getUserByName(name))
         return new ShaharError('user name already exist')
 
-    if (await UserModel.findOne({ phone }))
+    if (await db.getUserByPhone(phone))
         return new ShaharError('user phone already exist')
 
     const hashedPassword = await bcrypt.hash(password, await bcrypt.genSalt())
 
     try {
-        return await UserModel.create({ name, phone, password: hashedPassword })
+        return await db.createUser(name, phone, hashedPassword)
     } catch (error) {
         console.error(error);
         return new ShaharError('server error')
@@ -48,7 +48,7 @@ export async function register(name: string, phone: string, password: string): P
 export async function deleteImage(imageName: string, userId: string): Promise<ImageDeletionResult> {
     if (!userId) return new ImageDeletionResult(false, 'unauthorized')
 
-    const image: Image = await ImageModel.findOne({ name: imageName })
+    const image = await db.getImageByName(imageName)
 
     if (!image)
         return new ImageDeletionResult(false, 'unknown image')
@@ -58,7 +58,7 @@ export async function deleteImage(imageName: string, userId: string): Promise<Im
     try {
         const imageFileFullPath: string = path.join(config.uploadDirPath, imageName)
         await fs.promises.unlink(imageFileFullPath)
-        await ImageModel.deleteOne({ name: imageName })
+        await db.deleteImageByName(imageName)
         return new ImageDeletionResult(true)
     } catch (error) {
         console.error(error)
