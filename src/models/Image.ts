@@ -9,7 +9,7 @@ export class Image {
     @prop({ required: true, ref: () => User })
     public owner: Ref<DocumentType<User>>
 
-    @prop({ default: [] })
+    @prop({ default: [], type: () => [Date] })
     public accessEntries: Date[]
 }
 

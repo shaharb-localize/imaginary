@@ -13,16 +13,29 @@ import typeDefs from './graphql/typeDefs'
 import auth from "./middlewares/authToken"
 import expressJwt from 'express-jwt'
 
-async function main() {
+async function connectToMongoDB(): Promise<boolean> {
   try {
     await mongoose.connect(config.dbUrl)
+    return true
   } catch (error) {
     console.error(error)
-    return
+    return false
   }
+}
 
-  const app: Express = express()
+async function initApolloServer(app: Express): Promise<void> {
+  const apolloServer: ApolloServer = new ApolloServer({
+    typeDefs, resolvers, context: ({ req }) => {
+      const userId: ObjectId | undefined = req.user ? req.user.userId : undefined
+      return { userId }
+    }
+  })
 
+  await apolloServer.start()
+  apolloServer.applyMiddleware({ app })
+}
+
+function initMiddlewares(app: Express): void {
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
   app.use(fileUpload())
@@ -31,30 +44,30 @@ async function main() {
     algorithms: ["HS256"],
     credentialsRequired: false
   }))
+}
 
+function initRoutes(app: Express): void {
   app.get('/', (req: Request, res: Response) => {
     res.send('hi')
   })
-
   app.use('/dev', devRouter)
   app.use('/login', loginRouter)
   app.use('/ping', pingRouter)
   app.use('/upload', auth, uploadRouter)
   app.use('/view', auth, viewRouter)
-
-  const server: ApolloServer = new ApolloServer({
-    typeDefs, resolvers, context: ({ req }) => {
-      const userId: ObjectId | undefined = req.user ? req.user.userId : undefined
-      return { userId }
-    }
-  })
-
-  await server.start()
-  server.applyMiddleware({ app })
-
-  app.listen(config.port, () => {
-    console.log(`listening at http://localhost:${config.port}`)
-  })
 }
 
-main()
+async function initApp(app: Express) {
+  if (!(await connectToMongoDB()))
+    return
+
+  initMiddlewares(app)
+  initRoutes(app)
+  initApolloServer(app)
+}
+
+const app = express()
+
+initApp(app)
+
+export default app
