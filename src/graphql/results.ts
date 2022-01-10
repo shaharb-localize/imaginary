@@ -6,18 +6,24 @@ export class ImagesSelectionResult {
     public images: DocumentType<Image>[]
     public error: string
 
+    private static unauthorizedResult =
+        ImagesSelectionResult.createFailedResult('unauthorized')
+
     constructor(didSucceed: boolean, images: DocumentType<Image>[] = [], error: string = '') {
         this.didSucceed = didSucceed
         this.images = images
         this.error = error
     }
 
-    static createSuccessfulResult(images: DocumentType<Image>[]): ImagesSelectionResult {
+    public static createSuccessfulResult(images: DocumentType<Image>[]): ImagesSelectionResult {
         return new ImagesSelectionResult(true, images)
     }
 
-    static createFailedResult(error: string): ImagesSelectionResult {
+    public static createFailedResult(error: string): ImagesSelectionResult {
         return new ImagesSelectionResult(false, [], error)
+    }
+    public static getUnauthorizedResult(): ImagesSelectionResult {
+        return ImagesSelectionResult.unauthorizedResult
     }
 }
 
